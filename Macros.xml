@@ -675,6 +675,85 @@ READ PICTURE FILE($ruta; $imagen)
 </text>
  </macro>
 
+ <macro name="CalcularTramos">
+<text>
+ARRAY LONGINT($al_cargos; 0)
+C_REAL($montoDescto; $montoPagado; $montoTotal)
+C_POINTER($ptr)
+SELECTION TO ARRAY([ACT_Cargos]; $al_cargos)
+For ($x; 1; Size of array($al_cargos))
+	GOTO RECORD([ACT_Cargos]; $al_cargos{$x})
+	QUERY([xxACT_Items]; [xxACT_Items]ID=[ACT_Cargos]Ref_Item)
+	$montoDescto:=0
+	QUERY([ACT_Cargos]; [ACT_Cargos]ID_CargoRelacionado=[ACT_Cargos]ID)
+	If (Records in selection([ACT_Cargos])&gt;0)  //si hay descuentos, se restarán del cargo asociado
+		$montoDescto:=Abs(Sum([ACT_Cargos]Monto_Neto))
+	End if 
+	$montoTotal:=0
+	GOTO RECORD([ACT_Cargos]; $al_cargos{$x})
+	QUERY([ACT_Transacciones]; [ACT_Transacciones]ID_Item=[ACT_Cargos]ID)
+	QUERY SELECTION([ACT_Transacciones]; [ACT_Transacciones]Fecha&gt;=vd_fecha1; *)
+	QUERY SELECTION([ACT_Transacciones];  &amp; ; [ACT_Transacciones]Fecha&lt;=vd_fecha2)
+	QUERY SELECTION([ACT_Transacciones]; [ACT_Transacciones]Glosa#"@Pago con descuento@"; *)
+	QUERY SELECTION([ACT_Transacciones];  &amp; ; [ACT_Transacciones]Glosa#"@Balanceo descuento@")
+	ARRAY LONGINT($al_recNumTransacciones; 0)
+	SELECTION TO ARRAY([ACT_Transacciones]; $al_recNumTransacciones)
+	$montoPagado:=ACTtra_CalculaMontos("calculaFromRecNum"; -&gt;$al_recNumTransacciones; -&gt;[ACT_Transacciones]Debito)
+	$montoTotal:=([ACT_Cargos]Monto_Neto-$montoDescto)-$montoPagado
+	
+	$montoTotalCopia:=$montoTotal
+	$l_Decimales:=Num(ACTcar_OpcionesGenerales("numeroDecimales"; -&gt;[ACT_Cargos]Moneda))
+	
+	// buscar y calcular tramos solo para cargos originales
+	// los cargos que son tramos están asociados al mismo ítem que su cargo original, y suman más valor del que corresponde.
+	ARRAY LONGINT($al_tramos; 0)
+	If ([ACT_Cargos]Ref_RecargoTramo="")
+		KRL_FindAndLoadRecordByIndex(-&gt;[xxACT_Items]ID; -&gt;[ACT_Cargos]Ref_Item)
+		QUERY([xxACT_ItemsTramos]; [xxACT_ItemsTramos]id_item_de_cargo=[xxACT_Items]ID)
+		ORDER BY([xxACT_ItemsTramos]; [xxACT_ItemsTramos]dia_tramo_desde; &gt;)
+		SELECTION TO ARRAY([xxACT_ItemsTramos]; $al_tramos)
+	Else 
+		ARRAY LONGINT($al_tramos; 0)
+	End if 
+	
+	If (Size of array($al_tramos)&gt;0)
+		For ($y; 1; Size of array($al_tramos))
+			$montoTotal:=0
+			$montoRecargo:=0
+			GOTO RECORD([xxACT_ItemsTramos]; $al_tramos{$y})
+			If ([xxACT_ItemsTramos]es_monto_fijo)
+				$montoTotal:=Abs($montoTotalCopia)+[xxACT_ItemsTramos]valor
+			Else 
+				$montoTotal:=Abs($montoTotalCopia)+Round((Abs($montoTotalCopia)*[xxACT_ItemsTramos]valor)/100; 2)
+				$montoRecargo:=Round((Abs($montoTotalCopia)*[xxACT_ItemsTramos]valor)/100; 2)
+			End if 
+			
+			$ptr:=Get pointer("$ar_totalTramo"+String($y))
+			If ($y=1)  //si es el tramo 1, son montos originales
+				APPEND TO ARRAY($ptr-&gt;; $montoNeto)
+			Else   //si no, son solo los recargos
+				APPEND TO ARRAY($ptr-&gt;; $montoRecargo)
+			End if 
+		End for   //tramos
+	Else 
+		APPEND TO ARRAY($ar_totalTramo1; $montoNeto)
+	End if 
+End for   //cargos
+CLEAR SET("$Transacciones")
+CLEAR SET("$car_all")
+//TOTALES
+C_TEXT(vt_totalVcto1; vt_totalVcto2; vt_totalVcto3)
+C_REAL($vr_totalTramo1; $vr_totalTramo2; $vr_totalTramo3)
+$vr_totalTramo1:=Sum($ar_totalTramo1)
+$vr_totalTramo2:=vr_totalTramo1+Sum($ar_totalTramo2)
+$vr_totalTramo3:=vr_totalTramo2+Sum($ar_totalTramo3)
+
+vt_totalVcto1:=String($vr_totalTramo1; "|Despliegue_Act")
+vt_totalVcto2:=String($vr_totalTramo2; "|Despliegue_Act")
+vt_totalVcto3:=String($vr_totalTramo3; "|Despliegue_Act")
+</text>
+ </macro>
+
   <!-- Useful SQL statements 
   <macro name="-" in_menu="true" type_ahead="false" in_toolbar="false"><text/></macro>
   
