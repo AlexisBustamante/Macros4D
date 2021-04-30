@@ -1,0 +1,824 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+
+<!DOCTYPE macros SYSTEM "http://www.4d.com/dtd/2007/macros.dtd" >
+
+<!--
+Description
+This file is created in the 4D folder at the first launch of the database.
+It automatically creates several macro commands that can be enriched or modified.
+You can also add all the macros required for your own development needs manually.
+
+List of default macro commands.
+
+Logical blocks
+_________________________________________________________________________________
+If "If" logical block
+IfElse "If" logical block with an "Else" proposition
+CaseOf "Case" logical block
+While "While" logical block
+For "For" logical block
+Repeat "Repeat" logical block
+
+Frequently-used database blocks
+_________________________________________________________________________________
+"LoopRecord" Loop on a table selection with saving of record (use a table name as selection)
+"LoopRecordNoSave" Loop on a table selection without saving records (use a table name as selection)
+
+Useful blocks
+_________________________________________________________________________________
+"Header"	Header for method name
+"CodeModif" Adds 4D user name and date for development in multi-user environment
+-->
+
+<macros>
+
+<!-- Logical blocks -->
+<macro name="If">
+<text>
+If(<caret/>)
+<selection/>
+End if
+</text>
+</macro>
+
+<macro name="IfElse">
+<text>
+If(<caret/>)
+<selection/>
+Else
+
+End if
+</text>
+</macro>
+
+<macro name="CaseOf">
+<text>
+Case of
+:(<caret/>)
+<selection/>
+End case
+</text>
+</macro>
+
+<macro name="While">
+<text>
+While(<caret/>)
+<selection/>
+End while
+</text>
+</macro>
+
+<macro name="For">
+<text>
+For(<caret/>;;)
+<selection/>
+End for
+</text>
+</macro>
+
+<macro name="Repeat">
+<text>
+Repeat
+<selection/>
+Until(<caret/>)
+</text>
+</macro>
+
+<!-- Frequent database blocks -->
+<macro name="BucleRegistro">
+<text>
+While (Not(End selection(<selection/>)))
+<caret/>
+Save Record(<selection/>)
+Next Record(<selection/>)
+End while
+</text>
+</macro>
+
+<macro name="BucleRegistroSinGuardar">
+<text>
+While (Not(End selection(<selection/>)))
+<caret/>
+Next Record(<selection/>)
+End while
+</text>
+</macro>
+
+
+<!-- Useful blocks -->
+<macro name="Encabezado">
+<text>
+// ----------------------------------------------------
+// Usuario (SO): <user_os/>
+// Fecha y hora: <date format="0"/>, <time format="0"/>
+// ----------------------------------------------------
+// Método: <method_name/>
+// Descripción
+// <caret/>
+//
+// Parámetros
+// ----------------------------------------------------
+
+</text>
+</macro>
+
+<macro name="ModifCodigo">
+<text>
+// Modificado por: <user_os/> (<date format="1"/>)
+
+</text>
+</macro>
+
+<macro name="SeleccionaPeriodo">
+<text>
+_SeleccionaPeriodo 
+If (ok=1)
+	ORDER BY([Alumnos];[Alumnos]nivel_numero;>;[Alumnos]curso;>;[Alumnos]apellidos_y_nombres;>)
+Else 
+	vt_ErrorEjecucionScript:="X"
+End if
+</text>
+</macro>
+
+<macro name="ListaDesplegable">
+<text>
+  //SELECCIÓN ÚNICA
+ARRAY TEXT($arreglo;0)
+SRtbl_ShowChoiceList (0;"Texto de título";1;->bRepositorio;False;->$arreglo)
+If (choiceidx>0)
+	C_TEXT($seleccion)
+	$seleccion:=$arreglo{choiceidx}
+	
+Else 
+	vt_ErrorEjecucionScript:="X"
+End if
+
+
+//SELECCIÓN MÚLTIPLE
+ARRAY TEXT($arreglo;0)
+SRtbl_ShowChoiceList (0;"Texto de título";1;->bRepositorio;True;->$arreglo)
+If (Size of array(aLinesSelected)>0)
+	ARRAY TEXT($seleccion;0)
+	For ($x;1;Size of array(aLinesSelected))
+		APPEND TO ARRAY($seleccion;$arreglo{aLinesSelected{$x}})
+	End for
+	
+Else 
+	vt_ErrorEjecucionScript:="X"
+End if
+</text>
+ </macro>
+
+<macro name="SeleccionaGeneracion">
+<text>
+C_LONGINT($vl_opcion)
+$vl_opcion:=CD_Dlog (0;"¿Cómo desea generar el informe?";"";"Imprimir";"Excel";"Cancelar")
+If ($vl_opcion#3)
+	
+	If ($vl_opcion=1) //imprimir
+		
+	End if 
+	
+	If ($vl_opcion=2)  //Excel
+		
+	End if
+	
+Else 
+	vt_ErrorEjecucionScript:="X"
+End if
+</text>
+ </macro>
+
+<macro name="ExportadorXLS">
+<text>
+C_TEXT($ruta)
+$ruta:=xfGetDirName ("Seleccione carpeta de destino.")
+If ($ruta#"")
+	C_TEXT($NomArchivo)
+	C_LONGINT($ref;$linea;$col;$Guardar;$termometro)
+	$NomArchivo:=$ruta+"NOMBRE DEL INFORME"+DTS_MakeFromDateTime +".xls"
+	SYS_CreateFolder (SYS_GetParentNme ($NomArchivo))
+	If (SYS_IsWindows )
+		USE CHARACTER SET("windows-1252";0)
+	Else 
+		USE CHARACTER SET("MacRoman";0)
+	End if 
+	$ref:=XLS Create (1)
+	$linea:=1
+	
+	
+	
+	XLS Set text value ($ref;1;1;1;Storage.Global.colegio.nombre)
+	XLSII_SetCellFontStyle ($ref;1;1;1;Bold)
+	XLS Set text value ($ref;1;2;1;"Matriz de Apoderado y cuenta")
+	XLS Set text value ($ref;1;3;1;"Fecha de impresión")
+	XLS Set text value ($ref;1;3;2;String(Current date(*)))
+	
+	
+	XLS Set text value ($ref;1;$linea;1;"Grupo")
+	
+	$termometro:=IT_Progress (1;0;0;"")
+	For ($x;1;Size of array(aQR_text1))
+		$termometro:=IT_Progress (0;$termometro;$x/Size of array(aQR_text1);"")
+		XLS Set text value ($ref;1;$linea;1;"Grupo")
+	End for
+	$termometro:=IT_Progress (-1;$termometro;$x/Size of array(aQR_text1);"")
+	
+	$Guardar:=XLS Save as ($ref;$NomArchivo)
+	XLS CLOSE ($ref)
+	USE CHARACTER SET(*;0)
+	vt_ErrorEjecucionScript:="X"
+	CD_Dlog (0;"La exportación finalizó\n\n.Encontrará el archivo en: \n"+$ruta)
+	SHOW ON DISK($NomArchivo)
+Else 
+	vt_ErrorEjecucionScript:="X"
+End if
+</text>
+ </macro>
+
+<macro name="OrdenarAprendizajes">
+<text>
+//AÑO ACTUAL
+SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Asignatura;Automatic;Do not modify)
+SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Eje;Automatic;Do not modify)
+SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Dimension;Automatic;Do not modify)
+SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Competencia;Automatic;Do not modify)
+ORDER BY([Alumnos_EvaluacionAprendizajes];[Asignaturas]posicion_en_informes_de_notas;>;[Asignaturas]denominacion_interna;>;[MPA_DefinicionEjes]OrdenamientoNumerico;>;[MPA_DefinicionDimensiones]OrdenamientoNumérico;>;[MPA_DefinicionCompetencias]OrdenamientoNumerico;>)
+SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Competencia;Structure configuration;Structure configuration)
+SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Dimension;Structure configuration;Structure configuration)
+SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Eje;Structure configuration;Structure configuration)
+SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Asignatura;Structure configuration;Structure configuration)
+
+
+//AÑOS HISTÓRICOS
+SET AUTOMATIC RELATIONS(True;False)
+SELECTION TO ARRAY([Alumnos_EvaluacionAprendizajes];aQR_longint99;[Asignaturas_Historico]OrdenGeneral;aQR_text70;[Alumnos_EvaluacionAprendizajes]OrdenEje;aQR_integer70;[Alumnos_EvaluacionAprendizajes]OrdenDimension;aQR_integer71;[Alumnos_EvaluacionAprendizajes]OrdenCompetencia;aQR_integer72)
+MULTI SORT ARRAY(aQR_text70;>;aQR_integer70;>;aQR_integer71;>;aQR_integer72;>;aQR_longint99;>)
+CREATE SELECTION FROM ARRAY([Alumnos_EvaluacionAprendizajes];aQR_longint99)
+SET AUTOMATIC RELATIONS(False;False)
+
+</text>
+ </macro>
+
+<macro name="ContratoAño">
+<text>
+//MOSTRAR NIVEL PARA CUALQUIER AÑO (CONTRATOS)
+
+SRACT_SelFecha(2)
+If (ok=1)
+	C_BOOLEAN($continuar)
+	Case of 
+		: (vlSelAño&gt;&lt;&gt;gYear)
+			If ([Alumnos]curso="@adt") | ([Alumnos]curso="pos@")
+				QUERY([xxSTR_Niveles];[xxSTR_Niveles]noNivel=[Alumnos]nivel_numero)
+				vt_nivel:=[xxSTR_Niveles]nivel
+			Else 
+				If ([Alumnos]nivel_numero=-1)
+					QUERY([xxSTR_Niveles];[xxSTR_Niveles]noNivel=[Alumnos]nivel_numero)
+					vt_nivel:=[xxSTR_Niveles]nivel
+				Else 
+					QUERY([xxSTR_Niveles];[xxSTR_Niveles]noNivel=[Alumnos]nivel_numero+1)
+					vt_nivel:=[xxSTR_Niveles]nivel
+				End if 
+			End if 
+			$continuar:=True
+		: (vlSelAño=&lt;&gt;gYear)
+			QUERY([xxSTR_Niveles];[xxSTR_Niveles]noNivel=[Alumnos]nivel_numero)
+			vt_nivel:=[xxSTR_Niveles]nivel
+			$continuar:=True
+		: (vlSelAño&lt;&lt;&gt;gYear)
+			QUERY([Alumnos_Historico];[Alumnos_Historico]Alumno_Numero=[Alumnos]numero;*)
+			QUERY([Alumnos_Historico]; &amp; ;[Alumnos_Historico]Año=vlSelAño)
+			
+			If (Records in selection([Alumnos_Historico])&gt;0)
+				QUERY([xxSTR_HistoricoNiveles];[xxSTR_HistoricoNiveles]NumeroNivel=[Alumnos_Historico]Nivel;*)
+				QUERY([xxSTR_HistoricoNiveles]; &amp; ;[xxSTR_HistoricoNiveles]Año=vlSelAño)
+				vt_nivel:=[xxSTR_HistoricoNiveles]NombreInterno
+				$continuar:=True
+			Else 
+				$continuar:=False
+				CD_Dlog (0;"No se encontraron registros históricos para el año ingresado.")
+			End if 
+			
+	End case 
+	
+	If ($continuar)
+		
+	Else 
+		vt_ErrorEjecucionScript:="X"
+	End if
+Else 
+	vt_ErrorEjecucionScript:="X"
+End if
+</text>
+ </macro>
+ 
+ <macro name="SeleccionaAñoPeriodo">
+<text>
+//SELECCIÓN DE AÑO Y PERÍODO ACTUAL E HISTÓRICO
+
+SRACT_SelFecha (2)
+If (ok=1)
+	C_BOOLEAN($continuar)
+	
+	If (vlSelAño=&lt;&gt;GYEAR)
+		_SeleccionaPeriodo 
+		If (ok=1)
+			$continuar:=True
+		Else 
+			$continuar:=False
+		End if 
+	Else 
+		KRL_RelateSelection (-&gt;[Alumnos_Historico]Alumno_Numero;-&gt;[Alumnos]numero)
+		QUERY SELECTION([Alumnos_Historico];[Alumnos_Historico]Año=vlSelAño)
+		
+		If (Records in selection([Alumnos_Historico])&gt;0)
+			_SeleccionaPeriodoHistorico (vlSelAño;[Alumnos_Historico]Nivel)
+			
+			If (ok=1)
+				$continuar:=True
+				KRL_RelateSelection(-&gt;[Alumnos]numero;-&gt;[Alumnos_Historico]Alumno_Numero)
+			Else 
+				$continuar:=False
+			End if
+			
+		Else 
+			$continuar:=False
+			CD_Dlog(0;"No se encontraron registros históricos para el año ingresado.")
+		End if
+	End if
+	If ($continuar)
+		ORDER BY([Alumnos];[Alumnos]nivel_numero;&gt;;[Alumnos]curso;&gt;;[Alumnos]apellidos_y_nombres;&gt;)
+	Else 
+		vt_ErrorEjecucionScript:="X"
+	End if
+Else 
+	vt_ErrorEjecucionScript:="X"
+End if
+</text>
+ </macro>
+
+
+<macro name="ExportadorCSV">
+<text>
+C_TEXT($ruta)
+$ruta:=xfGetDirName ("Seleccione carpeta de destino.")
+If ($ruta#"")
+	C_LONGINT($linea;$columna;$Guardar;$termometro)
+	C_POINTER($ptr)
+	C_TEXT($NomArchivo)
+	C_TIME($temp)
+	$NomArchivo:=$ruta+"Debito_"+DTS_MakeFromDateTime +".txt"
+	SYS_CreateFolder (SYS_GetParentNme ($NomArchivo))
+	If (SYS_IsWindows )
+		USE CHARACTER SET("windows-1252";0)
+	Else 
+		USE CHARACTER SET("MacRoman";0)
+	End if 
+	
+	$temp:=Create document($NomArchivo)
+	If ($temp#?00:00:00?)
+		
+		$termometro:=IT_Progress (1;0;0;"")
+		
+		For ($x;1;Size of array(aQR_text1))
+			$termometro:=IT_Progress (0;$termometro;$x/Size of array(aQR_text1);"")
+			
+			IO_SendPacket ($temp;)
+			
+			IO_SendPacket ($temp;"\r")
+			
+		End for 
+		$termometro:=IT_Progress (-1;$termometro;$x/Size of array(aQR_text1);"")
+		
+		CLOSE DOCUMENT($temp)
+		USE CHARACTER SET(*;0)
+		vt_ErrorEjecucionScript:="X"
+		CD_Dlog (0;"La exportación finalizó\n\n.Encontrará el archivo en: \n"+$ruta)
+		SHOW ON DISK($NomArchivo)
+	Else 
+		vt_ErrorEjecucionScript:="X"
+	End if 
+Else 
+	vt_ErrorEjecucionScript:="X"
+End if 
+</text>
+ </macro>
+
+<macro name="AgregarHojasXLS">
+<text>
+ARRAY TEXT($at_cursos;0)
+If (Size of array($at_cursos)&gt;=1)  
+	C_TEXT($curso)
+	For ($y;1;Size of array($at_cursos))
+		If ($y&gt;1) 
+			XLS Add sheet ($ref)
+		End if 
+		$curso:=$at_cursos{$y}
+		$curso:=Replace string($curso;":";" ")
+		$curso:=Replace string($curso;"/";"-")
+		$curso:=Replace string($curso;"á";"a")
+		$curso:=Replace string($curso;"é";"e")
+		$curso:=Replace string($curso;"í";"i")
+		$curso:=Replace string($curso;"ó";"o")
+		$curso:=Replace string($curso;"ú";"u")
+		XLS Set sheet name ($ref;$y;$curso)
+	End for 
+End if 
+</text>
+ </macro>
+
+<macro name="OrderBy">
+<text>
+ORDER BY(<selection/>;)
+</text>
+ </macro>
+
+<macro name="SetFieldRelation">
+<text>
+SET FIELD RELATION(<selection/>;Automatic;Do not modify)
+QUERY SELECTION(<selection/>;)
+ORDER BY(<selection/>;)
+SET FIELD RELATION(<selection/>;Structure configuration;Structure configuration)
+</text>
+ </macro>
+
+<macro name="Termometro">
+<text>
+C_LONGINT($termometro)
+		$termometro:=IT_Progress (1;0;0;"")
+		$termometro:=IT_Progress (0;$termometro;vQR_long1/Size of array(aQR_text1);"")
+		$termometro:=IT_Progress (-1;$termometro;vQR_long1/Size of array(aQR_text1);"")
+</text>
+ </macro>
+
+ <macro name="KRL_RelateSelection">
+<text>
+KRL_RelateSelection(-&gt;;-&gt;)
+</text>
+ </macro>
+
+<macro name="SeleccionaAñoPeriodoAprendizajes">
+<text>
+    //264683
+SRACT_SelFecha (2)
+  //vlSelAño:=2020
+  //ok:=1
+If (ok=1)
+	ARRAY TEXT(at_periodos;0)
+	C_BOOLEAN($continuar)
+	If (vlSelAño=&lt;&gt;GYEAR)
+		PERIODOS_LoadData ([Alumnos]nivel_numero)
+		COPY ARRAY(atSTR_Periodos_Nombre;at_periodos)
+		$continuar:=True
+	Else 
+		KRL_RelateSelection (-&gt;[Alumnos_Historico]Alumno_Numero;-&gt;[Alumnos]numero)
+		QUERY SELECTION([Alumnos_Historico];[Alumnos_Historico]Año=vlSelAño)
+		If (Records in selection([Alumnos_Historico])&gt;0)
+			PERIODOS_LeeDatosHistoricos ([Alumnos_Historico]Nivel;vlSelAño)
+			COPY ARRAY(atSTR_Periodos_Nombre;at_periodos)
+			$continuar:=True
+		Else 
+			$continuar:=False
+			CD_Dlog (0;"No se encontraron registros históricos, para la selección de alumnos, en el año ingresado.")
+		End if 
+	End if 
+	
+	
+	If ($continuar)
+		APPEND TO ARRAY(at_periodos;"Final")
+		SRtbl_ShowChoiceList (0;"Seleccione el período";2;-&gt;brepositorio;False;-&gt;at_periodos)
+		  //choiceidx:=3
+		vperiodo:=choiceidx
+		
+		If (choiceidx&gt;0)
+			ARRAY LONGINT($numeros;0)
+			ARRAY TEXT($asignaturas;0)
+			ARRAY TEXT($cursos;0)
+			If (vlSelAño=&lt;&gt;GYEAR)
+				ARRAY LONGINT($alumnos;0)
+				ORDER BY([Alumnos];[Alumnos]nivel_numero;&gt;;[Alumnos]curso;&gt;;[Alumnos]apellidos_y_nombres;&gt;)
+				SELECTION TO ARRAY([Alumnos];$alumnos)
+				CREATE EMPTY SET([Alumnos_EvaluacionAprendizajes];"$temp")
+				For ($x;1;Size of array($alumnos))
+					ARRAY LONGINT($temp;0)
+					GOTO RECORD([Alumnos];$alumnos{$x})
+					SRal_EvaluacionAprendizajes ("inicio")  //cuando no se cargan los aprendizajes 
+					C_LONGINT($vl_records)
+					SET QUERY DESTINATION(Into variable;$vl_records)
+					QUERY([Alumnos_EvaluacionAprendizajes];[Alumnos_EvaluacionAprendizajes]ID_Alumno=[Alumnos]numero)
+					SET QUERY DESTINATION(Into current selection)
+					  //
+					If ($vl_records=0)
+						SRal_EvaluacionAprendizajes ("inicio")  //cuando no se cargan los aprendizajes 
+					End if 
+					
+					  //AÑO ACTUAL
+					SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Asignatura;Automatic;Do not modify)
+					SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Eje;Automatic;Do not modify)
+					SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Dimension;Automatic;Do not modify)
+					SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Competencia;Automatic;Do not modify)
+					ORDER BY([Alumnos_EvaluacionAprendizajes];[Asignaturas]posicion_en_informes_de_notas;&gt;;[Asignaturas]denominacion_interna;&gt;;[MPA_DefinicionEjes]OrdenamientoNumerico;&gt;;[MPA_DefinicionDimensiones]OrdenamientoNumerico;&gt;;[MPA_DefinicionCompetencias]OrdenamientoNumerico;&gt;)
+					SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Competencia;Structure configuration;Structure configuration)
+					SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Dimension;Structure configuration;Structure configuration)
+					SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Eje;Structure configuration;Structure configuration)
+					SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Asignatura;Structure configuration;Structure configuration)
+					SELECTION TO ARRAY([Alumnos_EvaluacionAprendizajes];$temp)
+					
+					For ($y;1;Size of array($temp))
+						GOTO RECORD([Alumnos_EvaluacionAprendizajes];$temp{$y})
+						QUERY([Asignaturas];[Asignaturas]Numero=[Alumnos_EvaluacionAprendizajes]ID_Asignatura)
+						If (Find in array($numeros;[Asignaturas]Numero)&amp;lt;0)
+							APPEND TO ARRAY($numeros;[Asignaturas]Numero)
+							APPEND TO ARRAY($asignaturas;[Asignaturas]nombre)
+							APPEND TO ARRAY($cursos;[Asignaturas]curso)
+						End if 
+						ADD TO SET([Alumnos_EvaluacionAprendizajes];"$temp")
+					End for 
+				End for 
+				
+			Else 
+				KRL_RelateSelection (-&gt;[Alumnos]numero;-&gt;[Alumnos_Historico]Alumno_Numero)
+				ARRAY LONGINT($alumnos;0)
+				ARRAY LONGINT($asig;0)
+				SELECTION TO ARRAY([Alumnos]numero;$alumnos)
+				AT_NegativeNumericArray (-&gt;$alumnos)
+				QUERY WITH ARRAY([Alumnos_EvaluacionAprendizajes]ID_Alumno;$alumnos)
+				QUERY SELECTION([Alumnos_EvaluacionAprendizajes];[Alumnos_EvaluacionAprendizajes]Año=vlSelAño)
+				CREATE SET([Alumnos_EvaluacionAprendizajes];"$temp")
+				SELECTION TO ARRAY([Alumnos_EvaluacionAprendizajes]ID_Asignatura;$asig)
+				AT_ABSNumericArray (-&gt;$asig)
+				QUERY WITH ARRAY([Asignaturas_Historico]ID_AsignaturaOriginal;$asig)
+				ORDER BY([Asignaturas_Historico];[Asignaturas_Historico]Nivel;&gt;;[Asignaturas_Historico]Curso;&gt;;[Asignaturas_Historico]OrdenGeneral;&gt;)
+				SELECTION TO ARRAY([Asignaturas_Historico]ID_AsignaturaOriginal;$numeros;[Asignaturas_Historico]Asignatura;$asignaturas;[Asignaturas_Historico]Curso;$cursos)
+			End if 
+			
+			If (Size of array($asignaturas)&gt;0)
+				
+				SRtbl_ShowChoiceList (0;"Selección de Asignatura";2;-&gt;brepositorio;True;-&gt;$asignaturas;-&gt;$cursos)
+				  //APPEND TO ARRAY(ALINESSELECTED;1)
+				  //APPEND TO ARRAY(ALINESSELECTED;2)
+				  //APPEND TO ARRAY(ALINESSELECTED;3)
+				  //APPEND TO ARRAY(ALINESSELECTED;4)
+				
+				If (Size of array(ALINESSELECTED)&gt;0)
+					ARRAY LONGINT(al_asignaturas;0)
+					For (vQR_long1;1;Size of array(ALINESSELECTED))
+						APPEND TO ARRAY(al_asignaturas;$numeros{ALINESSELECTED{vQR_long1}})
+					End for 
+					ARRAY LONGINT(al_idAlumnos;0)
+					USE SET("$temp")
+					
+					If (vlSelAño&lt;&lt;&gt;GYEAR)
+						AT_NegativeNumericArray (-&gt;al_asignaturas)
+					End if 
+					
+					QUERY SELECTION WITH ARRAY([Alumnos_EvaluacionAprendizajes]ID_Asignatura;al_asignaturas)
+					CLEAR SET("$temp")
+					CREATE SET([Alumnos_EvaluacionAprendizajes];"Aprendizajes")
+					ARRAY LONGINT($alumnos;0)
+					SELECTION TO ARRAY([Alumnos_EvaluacionAprendizajes]ID_Alumno;$alumnos)
+					AT_ABSNumericArray (-&gt;$alumnos)
+					QUERY WITH ARRAY([Alumnos]numero;$alumnos)
+					ORDER BY([Alumnos];[Alumnos]nivel_numero;&gt;;[Alumnos]curso;&gt;;[Alumnos]apellidos_y_nombres;&gt;)
+				Else 
+					vt_ErrorEjecucionScript:="Cancel"
+				End if 
+			Else 
+				vt_ErrorEjecucionScript:="Cancel"
+				CD_Dlog (0;"No se encontraron aprendizajes para generar el reporte.")
+			End if 
+		Else 
+			vt_ErrorEjecucionScript:="Cancel"
+		End if 
+	Else 
+		vt_ErrorEjecucionScript:="Cancel"
+	End if 
+Else 
+	vt_ErrorEjecucionScript:="Cancel"
+End if 
+</text>
+ </macro>
+
+<macro name="CalcularMontos">
+<text>
+  //CALCULAR MONTO DEL CARGO EN MONEDA VARIABLE, EN BASE A UNA FECHA
+C_DATE($d_fecha)
+C_REAL($vr_monto)
+$vr_monto:=ACTcar_CalculaMontos ("redondeadoFromCurrentRecordsMEmision";-&gt;[ACT_Cargos]Monto_Neto;-&gt;[ACT_Cargos]Monto_Neto;$d_fecha)
+
+  //CALCULAR MONTO PAGADO, DESDE LAS TRANSACCIONES
+ARRAY LONGINT($al_recNumTransacciones;0)
+C_REAL($vr_monto)
+QUERY SELECTION([ACT_Transacciones];[ACT_Transacciones]Glosa#"@Balanceo Descuento@";*)
+QUERY SELECTION([ACT_Transacciones]; &amp; ;[ACT_Transacciones]Glosa#"@Pago con Descuento@")
+SELECTION TO ARRAY([ACT_Transacciones];$al_recNumTransacciones)
+
+$vr_monto:=ACTtra_CalculaMontos ("calculaFromRecNum";-&gt;$al_recNumTransacciones;-&gt;[ACT_Transacciones]Debito)
+
+  //MONTO A PAGAR DESDE EL AVISO, CUALQUIER MONEDA
+C_DATE($d_fecha)
+C_REAL($vr_monto)
+$vr_monto:=ACTcar_CalculaSaldo ("retornaSaldoMonedaPago";$d_fecha;-&gt;[ACT_Avisos_de_Cobranza]Monto_a_Pagar;-&gt;[ACT_Avisos_de_Cobranza]Moneda)
+</text>
+ </macro>
+
+<macro name="CargarAprendizajes">
+<text>
+SRal_EvaluacionAprendizajes("inicio")  
+C_LONGINT($vl_records)
+SET QUERY DESTINATION(Into variable; $vl_records)
+QUERY([Alumnos_EvaluacionAprendizajes]; [Alumnos_EvaluacionAprendizajes]ID_Alumno=[Alumnos]numero)
+SET QUERY DESTINATION(Into current selection)
+If ($vl_records=0)
+	SRal_EvaluacionAprendizajes("inicio") 
+End if 
+</text>
+ </macro>
+
+<macro name="PunterosAlumno">
+<text>
+//PUNTEROS DE ALUMNO
+C_POINTER($ptr)
+//[Alumnos_Calificaciones]
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_Calificaciones]P0"+String(vperiodo)+"_Eval"+String($i; "00")+"_Literal") 
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_Calificaciones]P0"+String(vperiodo)+"_Final_Literal")
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_Calificaciones]P0"+String(vperiodo)+"_Control_Literal")
+
+//[Alumnos_EvaluacionAprendizajes]
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_EvaluacionAprendizajes]Periodo"+String(vPeriodo)+"_NativoLiteral")
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_EvaluacionAprendizajes]Periodo"+String(vPeriodo)+"_Indicador")
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_EvaluacionAprendizajes]Periodo"+String(vPeriodo)+"_Observaciones")
+
+//[Alumnos_ComplementoEvaluacion]
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_ComplementoEvaluacion]P0"+String(vperiodo)+"_Esfuerzo")
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_ComplementoEvaluacion]P0"+String(vperiodo)+"_Inasistencias")
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_ComplementoEvaluacion]P0"+String(vperiodo)+"_Obs_Academicas")
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_ComplementoEvaluacion]P0"+String(vperiodo)+"_Objetivos")
+
+//[Alumnos_SintesisAnual]
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_SintesisAnual]P0"+String(vperiodo)+"_Anotaciones_Negativas")
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_SintesisAnual]P0"+String(vperiodo)+"_Anotaciones_Positivas")
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_SintesisAnual]P0"+String(vperiodo)+"_HorasEfectivas")
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_SintesisAnual]P0"+String(vperiodo)+"_Atrasos_Jornada")
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_SintesisAnual]P0"+String(vperiodo)+"_Atrasos_Sesiones")
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_SintesisAnual]P0"+String(vperiodo)+"_Castigos")
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_SintesisAnual]P0"+String(vperiodo)+"_PorcentajeAsistencia")
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_SintesisAnual]P0"+String(vperiodo)+"_Inasistencias_Dias")
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_SintesisAnual]P0"+String(vperiodo)+"_Observaciones_Academicas")
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_SintesisAnual]P0"+String(vperiodo)+"_PromedioInterno_Literal")
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_SintesisAnual]P0"+String(vperiodo)+"_PromedioOficial_Literal")
+</text>
+ </macro>
+
+<macro name="UsarImagenExterna">
+<text>
+//USAR RECURSO DE IMAGEN EXTERNA (FIRMAS, LOGOS, ETC).
+C_PICTURE($imagen)
+C_TEXT($rutaBase; $archivo; $ruta)
+$rutaBase:=sys_getRutaBaseDatos
+$archivo:="NOMBRE ARCHIVO IMAGEN"
+$ruta:=$rutaBase+"logos"+Folder separator+$archivo
+READ PICTURE FILE($ruta; $imagen)
+</text>
+ </macro>
+
+  <!-- Useful SQL statements 
+  <macro name="-" in_menu="true" type_ahead="false" in_toolbar="false"><text/></macro>
+  
+  <macro name="SQL_USE_4D_Function" type_ahead="true" in_menu = "true" in_toolbar="false">
+    <text>SELECT ID, {fn My4DFunction() AS NUMERIC} /* My4DFunction must have activated the 'Available through SQL' property */
+      FROM table
+      LIMIT 1 /* Remove or modify this line if you want to apply the function to all or a part of the records */
+      INTO :aArray1, :aArray2;
+    </text>
+  </macro>
+  
+  <macro name="SQL_USE_FILTERS" type_ahead="true" in_menu = "true" in_toolbar="false">
+    <text>SELECT *
+      FROM table
+      LIMIT 30 /* Restrict to 30 the number of returned records */
+      OFFSET 4 /* Skip the first 4 records before beginning to count for the LIMIT clause */
+      INTO :listbox;
+    </text>
+  </macro>
+  
+  <macro name="SQL_EXPLICIT_INNER_JOIN" type_ahead="true" in_menu = "true" in_toolbar="false">
+    <text>SELECT name, department
+      FROM employees
+      INNER JOIN departments
+      ON employees.depID = departments.depID
+      INTO LISTBOX :aListbox;
+    </text>
+  </macro>
+  
+  <macro name="SQL_IMPLICIT_INNER_JOIN" type_ahead="true" in_menu = "true" in_toolbar="false">
+    <text>SELECT name, department
+      FROM employees, departments
+      WHERE employees.depID = departments.depID
+      INTO LISTBOX :aListbox;
+    </text>
+  </macro>
+  
+  <macro name="SQL_CROSS_JOIN" type_ahead="true" in_menu = "true" in_toolbar="false">
+    <text>SELECT name, department
+      FROM employees
+      CROSS JOIN departments
+      INTO LISTBOX :aListbox;
+    </text>
+  </macro>
+  
+  <macro name="SQL_LEFT_OUTER_JOIN" type_ahead="true" in_menu = "true" in_toolbar="false">
+    <text>SELECT name, department
+      FROM employees
+      LEFT OUTER JOIN departments
+      ON employees.depID = departments.depID
+      INTO LISTBOX :aListbox;
+    </text>
+  </macro>
+  
+  <macro name="SQL_RIGHT_OUTER_JOIN" type_ahead="true" in_menu = "true" in_toolbar="false">
+    <text>SELECT name, department
+      FROM employees
+      RIGHT OUTER JOIN departments
+      ON employees.depID = departments.depID
+      INTO LISTBOX :aListbox;
+    </text>
+  </macro>
+  
+  <macro name="SQL_FULL_OUTER_JOIN" type_ahead="true" in_menu = "true" in_toolbar="false">
+    <text>SELECT name, department
+      FROM employees
+      FULL OUTER JOIN departments
+      ON employees.depID = departments.depID
+      INTO LISTBOX :aListbox;
+    </text>
+  </macro>
+  
+  <macro name="SQL_REPLICATE_IN_ARRAYS_SHORT" type_ahead="true" in_menu = "true" in_toolbar="false">
+    <text>REPLICATE id, field1, field2, field3
+      FROM remoteTable
+      FOR REMOTE STAMP :vRemote_Stamp
+      REMOTE OVER LOCAL
+      LATEST REMOTE STAMP :vLatest_Remote_Stamp
+      INTO :aID, :aField1, :aField2, :aField3;
+    </text>
+  </macro>
+  
+  <macro name="SQL_REPLICATE_IN_FIELDS_SHORT" type_ahead="true" in_menu = "true" in_toolbar="false">
+    <text>REPLICATE id, field1, field2, field3
+      FROM remoteTable
+      FOR REMOTE STAMP :vRemote_Stamp
+      REMOTE OVER LOCAL
+      LATEST REMOTE STAMP :vLatest_Remote_Stamp
+      INTO localTable (id, field1, field2, field3);
+    </text>
+  </macro>
+  
+  <macro name="SQL_REPLICATE_IN_ARRAYS_FULL" type_ahead="true" in_menu = "true" in_toolbar="false">
+    <text>REPLICATE id, field1, field2, field3
+      FROM remoteTable
+      WHERE remoteTable.id >= :vComparison_Value /*optionnal*/
+      LIMIT :vLimit_Value /*optionnal*/
+      OFFSET:vOffset_Value /*optionnal*/
+      FOR REMOTE STAMP :vRemote_Stamp,
+      LOCAL STAMP :vLocal_Stamp /*optionnal*/
+      REMOTE OVER LOCAL /*optionnal*/
+      /* or LOCAL OVER REMOTE */
+      LATEST REMOTE STAMP :vLatest_Remote_Stamp, /*optionnal*/
+      LATEST LOCAL STAMP :vLatest_Local_Stamp /*optionnal*/
+      INTO :aID, :aField1, :aField2, :aField3;
+    </text>
+  </macro>
+  
+  <macro name="SQL_REPLICATE_IN_FIELDS_FULL" type_ahead="true" in_menu = "true" in_toolbar="false">
+    <text>REPLICATE id, field1, field2, field3
+      FROM remoteTable
+      WHERE remoteTable.id >= :vComparison_Value /*optionnal*/
+      LIMIT :vLimit_Value /*optionnal*/
+      OFFSET :vOffset_Value /*optionnal*/
+      FOR REMOTE STAMP :vRemote_Stamp,
+      LOCAL STAMP :vLocal_Stamp /*optionnal*/
+      REMOTE OVER LOCAL /*optionnal*/
+      /* or LOCAL OVER REMOTE */
+      LATEST REMOTE STAMP :vLatest_Remote_Stamp, /*optionnal*/
+      LATEST LOCAL STAMP :vLatest_Local_Stamp /*optionnal*/
+      INTO localTable (id, field1, field2, field3);
+    </text>
+  </macro>
+  
+  <macro name="SQL_SYNCHRONIZE" type_ahead="true" in_menu = "true" in_toolbar="false">
+    <text>SYNCHRONIZE
+      LOCAL localTable (id, field1, field2, field3)
+      WITH
+      REMOTE remoteTable (id, field1, field2, field3)
+      FOR REMOTE STAMP :vRemote_Stamp,
+      LOCAL STAMP :vLocal_Stamp /*optionnal*/
+      REMOTE OVER LOCAL /*optionnal*/
+      /* or LOCAL OVER REMOTE */
+      LATEST REMOTE STAMP :vLatest_Remote_Stamp, /*optionnal*/
+      LATEST LOCAL STAMP :vLatest_Local_Stamp; /*optionnal*/
+    </text>
+  </macro>-->
+  
+</macros> 
