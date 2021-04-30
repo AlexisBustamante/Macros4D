@@ -76,14 +76,6 @@ End for
 </text>
 </macro>
 
-<macro name="Repeat">
-<text>
-Repeat
-<selection/>
-Until(<caret/>)
-</text>
-</macro>
-
 <!-- Frequent database blocks -->
 <macro name="BucleRegistro">
 <text>
