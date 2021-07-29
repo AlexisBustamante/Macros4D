@@ -76,6 +76,14 @@ End for
 </text>
 </macro>
 
+<macro name="Repeat">
+<text>
+Repeat
+<selection/>
+Until(<caret/>)
+</text>
+</macro>
+
 <!-- Frequent database blocks -->
 <macro name="BucleRegistro">
 <text>
@@ -225,30 +233,6 @@ If ($ruta#"")
 Else 
 	vt_ErrorEjecucionScript:="X"
 End if
-</text>
- </macro>
-
-<macro name="OrdenarAprendizajes">
-<text>
-//AÑO ACTUAL
-SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Asignatura;Automatic;Do not modify)
-SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Eje;Automatic;Do not modify)
-SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Dimension;Automatic;Do not modify)
-SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Competencia;Automatic;Do not modify)
-ORDER BY([Alumnos_EvaluacionAprendizajes];[Asignaturas]posicion_en_informes_de_notas;>;[Asignaturas]denominacion_interna;>;[MPA_DefinicionEjes]OrdenamientoNumerico;>;[MPA_DefinicionDimensiones]OrdenamientoNumérico;>;[MPA_DefinicionCompetencias]OrdenamientoNumerico;>)
-SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Competencia;Structure configuration;Structure configuration)
-SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Dimension;Structure configuration;Structure configuration)
-SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Eje;Structure configuration;Structure configuration)
-SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Asignatura;Structure configuration;Structure configuration)
-
-
-//AÑOS HISTÓRICOS
-SET AUTOMATIC RELATIONS(True;False)
-SELECTION TO ARRAY([Alumnos_EvaluacionAprendizajes];aQR_longint99;[Asignaturas_Historico]OrdenGeneral;aQR_text70;[Alumnos_EvaluacionAprendizajes]OrdenEje;aQR_integer70;[Alumnos_EvaluacionAprendizajes]OrdenDimension;aQR_integer71;[Alumnos_EvaluacionAprendizajes]OrdenCompetencia;aQR_integer72)
-MULTI SORT ARRAY(aQR_text70;>;aQR_integer70;>;aQR_integer71;>;aQR_integer72;>;aQR_longint99;>)
-CREATE SELECTION FROM ARRAY([Alumnos_EvaluacionAprendizajes];aQR_longint99)
-SET AUTOMATIC RELATIONS(False;False)
-
 </text>
  </macro>
 
@@ -450,9 +434,9 @@ KRL_RelateSelection(-&gt;;-&gt;)
 </text>
  </macro>
 
-<macro name="SeleccionaAñoPeriodoAprendizajes">
+<macro name="InformeAprendizajes">
 <text>
-    //264683
+    //PROPIEDADES
 SRACT_SelFecha (2)
   //vlSelAño:=2020
   //ok:=1
@@ -520,7 +504,7 @@ If (ok=1)
 					For ($y;1;Size of array($temp))
 						GOTO RECORD([Alumnos_EvaluacionAprendizajes];$temp{$y})
 						QUERY([Asignaturas];[Asignaturas]Numero=[Alumnos_EvaluacionAprendizajes]ID_Asignatura)
-						If (Find in array($numeros;[Asignaturas]Numero)&amp;lt;0)
+						If (Find in array($numeros;[Asignaturas]Numero)&lt;0)
 							APPEND TO ARRAY($numeros;[Asignaturas]Numero)
 							APPEND TO ARRAY($asignaturas;[Asignaturas]nombre)
 							APPEND TO ARRAY($cursos;[Asignaturas]curso)
@@ -589,6 +573,71 @@ If (ok=1)
 Else 
 	vt_ErrorEjecucionScript:="Cancel"
 End if 
+
+
+//INICIO
+ARRAY LONGINT(al_aprendizajes; 0)
+USE SET("Aprendizajes")
+If (vlSelAño=&lt;&gt;GYEAR)
+	QUERY SELECTION([Alumnos_EvaluacionAprendizajes]; [Alumnos_EvaluacionAprendizajes]ID_Alumno=[Alumnos]numero)
+	QUERY SELECTION WITH ARRAY([Alumnos_EvaluacionAprendizajes]ID_Asignatura; al_asignaturas)
+	SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Asignatura; Automatic; Do not modify)
+	SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Eje; Automatic; Do not modify)
+	SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Dimension; Automatic; Do not modify)
+	SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Competencia; Automatic; Do not modify)
+	//QUERY SELECTION BY FORMULA([Alumnos_EvaluacionAprendizajes];([Alumnos_EvaluacionAprendizajes]BIT_Periodo ?? vPeriodo) | ([Alumnos_EvaluacionAprendizajes]BIT_Periodo ?? 0) | ([Alumnos_EvaluacionAprendizajes]BIT_Periodo=0))
+	ORDER BY([Alumnos_EvaluacionAprendizajes]; [Asignaturas]ordenGeneral; &gt;; [Asignaturas]denominacion_interna; &gt;; [MPA_DefinicionEjes]OrdenamientoNumerico; &gt;; [MPA_DefinicionDimensiones]OrdenamientoNumerico; &gt;; [MPA_DefinicionCompetencias]OrdenamientoNumerico; &gt;)
+	SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Competencia; Structure configuration; Structure configuration)
+	SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Dimension; Structure configuration; Structure configuration)
+	SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Eje; Structure configuration; Structure configuration)
+	SET FIELD RELATION([Alumnos_EvaluacionAprendizajes]ID_Asignatura; Structure configuration; Structure configuration)
+Else 
+	ARRAY LONGINT($temp1; 0)
+	ARRAY LONGINT($temp2; 0)
+	ARRAY LONGINT($temp3; 0)
+	ARRAY LONGINT($temp4; 0)
+	ARRAY TEXT($temp5; 0)
+	QUERY([Alumnos_Historico]; [Alumnos_Historico]Alumno_Numero=[Alumnos]numero; *)
+	QUERY([Alumnos_Historico];  &amp; ; [Alumnos_Historico]Año=vlSelAño)
+	QUERY SELECTION([Alumnos_EvaluacionAprendizajes]; [Alumnos_EvaluacionAprendizajes]ID_Alumno=[Alumnos]numero*-1; *)
+	QUERY SELECTION([Alumnos_EvaluacionAprendizajes];  &amp; ; [Alumnos_EvaluacionAprendizajes]Año=vlSelAño)
+	//QUERY SELECTION BY FORMULA([Alumnos_EvaluacionAprendizajes];([Alumnos_EvaluacionAprendizajes]BIT_Periodo ?? vPeriodo) | ([Alumnos_EvaluacionAprendizajes]BIT_Periodo ?? 0) | ([Alumnos_EvaluacionAprendizajes]BIT_Periodo=0))
+	SET AUTOMATIC RELATIONS(True; False)
+	SELECTION TO ARRAY([Alumnos_EvaluacionAprendizajes]; $temp1; [Asignaturas_Historico]OrdenGeneral; $temp5; [Alumnos_EvaluacionAprendizajes]OrdenEje; $temp2; [Alumnos_EvaluacionAprendizajes]OrdenDimension; $temp3; [Alumnos_EvaluacionAprendizajes]OrdenCompetencia; $temp4)
+	MULTI SORT ARRAY($temp5; &gt;; $temp2; &gt;; $temp3; &gt;; $temp4; &gt;; $temp1; &gt;)
+	CREATE SELECTION FROM ARRAY([Alumnos_EvaluacionAprendizajes]; $temp1)
+	SET AUTOMATIC RELATIONS(False; False)
+End if 
+
+SELECTION TO ARRAY([Alumnos_EvaluacionAprendizajes]; al_aprendizajes)
+
+
+//CUERPO
+C_TEXT(vt_enunciado; vt_eval)
+C_POINTER($ptr)
+GOTO RECORD([Alumnos_EvaluacionAprendizajes]; al_aprendizajes{SRRECORD})
+If (vlSelAño=&lt;&gt;GYEAR)
+	Case of 
+		: ([Alumnos_EvaluacionAprendizajes]Tipo_Objeto=Logro_Aprendizaje)
+			QUERY([MPA_DefinicionCompetencias]; [MPA_DefinicionCompetencias]ID=[Alumnos_EvaluacionAprendizajes]ID_Competencia)
+			[Alumnos_EvaluacionAprendizajes]Enunciado:=[MPA_DefinicionCompetencias]Competencia
+			
+		: ([Alumnos_EvaluacionAprendizajes]Tipo_Objeto=Dimension_Aprendizaje)
+			QUERY([MPA_DefinicionDimensiones]; [MPA_DefinicionDimensiones]ID=[Alumnos_EvaluacionAprendizajes]ID_Dimension)
+			[Alumnos_EvaluacionAprendizajes]Enunciado:=[MPA_DefinicionDimensiones]Dimension
+			
+		: ([Alumnos_EvaluacionAprendizajes]Tipo_Objeto=Eje_Aprendizaje)
+			QUERY([MPA_DefinicionEjes]; [MPA_DefinicionEjes]ID=[Alumnos_EvaluacionAprendizajes]ID_Eje)
+			[Alumnos_EvaluacionAprendizajes]Enunciado:=[MPA_DefinicionEjes]Nombre
+	End case 
+End if 
+vt_enunciado:=[Alumnos_EvaluacionAprendizajes]Enunciado
+//[Alumnos_EvaluacionAprendizajes]
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_EvaluacionAprendizajes]Periodo"+String(vPeriodo)+"_NativoLiteral")
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_EvaluacionAprendizajes]Periodo"+String(vPeriodo)+"_Indicador")
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_EvaluacionAprendizajes]Periodo"+String(vPeriodo)+"_Observaciones")
+vt_eval:=$ptr-&gt;
+
 </text>
  </macro>
 
@@ -612,19 +661,6 @@ $vr_monto:=ACTtra_CalculaMontos ("calculaFromRecNum";-&gt;$al_recNumTransaccione
 C_DATE($d_fecha)
 C_REAL($vr_monto)
 $vr_monto:=ACTcar_CalculaSaldo ("retornaSaldoMonedaPago";$d_fecha;-&gt;[ACT_Avisos_de_Cobranza]Monto_a_Pagar;-&gt;[ACT_Avisos_de_Cobranza]Moneda)
-</text>
- </macro>
-
-<macro name="CargarAprendizajes">
-<text>
-SRal_EvaluacionAprendizajes("inicio")  
-C_LONGINT($vl_records)
-SET QUERY DESTINATION(Into variable; $vl_records)
-QUERY([Alumnos_EvaluacionAprendizajes]; [Alumnos_EvaluacionAprendizajes]ID_Alumno=[Alumnos]numero)
-SET QUERY DESTINATION(Into current selection)
-If ($vl_records=0)
-	SRal_EvaluacionAprendizajes("inicio") 
-End if 
 </text>
  </macro>
 
@@ -675,7 +711,7 @@ READ PICTURE FILE($ruta; $imagen)
 </text>
  </macro>
 
- <macro name="CalcularTramos">
+<macro name="CalcularTramos">
 <text>
 ARRAY LONGINT($al_cargos; 0)
 C_REAL($montoDescto; $montoPagado; $montoTotal)
@@ -790,6 +826,7 @@ hmBC_DELETE ($vl_ref)
 </text>
  </macro>
 
+<<<<<<< HEAD
  <macro name="Obs_x_Asignatura">
 	<text>
 		QUERY([Alumnos_Calificaciones]; [Alumnos_Calificaciones]ID_Alumno=[Alumnos]numero; *)
@@ -803,6 +840,65 @@ $ptr:=KRL_GetFieldPointerByName("[Alumnos_ComplementoEvaluacion]P0"+String(vperi
 
 	</text>
  </macro>
+=======
+<macro name="ExportadorXLSWorkBook">
+<text>
+C_TEXT($ruta)
+$ruta:=xfGetDirName("Seleccione carpeta de destino.")
+//$ruta:="C:\\Users\\Ignacio Arenas\\Desktop\\"
+If ($ruta#"")
+	C_TEXT($NomArchivo; $sheetName; $encabezados)
+	C_LONGINT($book; $linea; $col; $Guardar; $sheet; $cell; $merge; $termometro)
+	$NomArchivo:=$ruta+"Nombre_Informe_"+DTS_MakeFromDateTime+".xls"
+	SYS_CreateFolder(SYS_GetParentNme($NomArchivo))
+	If (SYS_IsWindows)
+		USE CHARACTER SET("windows-1252"; 0)
+	Else 
+		USE CHARACTER SET("MacRoman"; 0)
+	End if 
+	$book:=XLS WORKBOOK Create
+	$sheetName:="Hoja1"
+	$sheet:=XLS WORKBOOK Create sheet($book; $sheetName)
+	//Conteo parte de cero. Parámetros:  hoja;fila;columna;formato;valor
+	$cell:=XLS WORKSHEET Set cell text($sheet; 0; 0; 0; Storage.Global.colegio.nombre)
+	XLS CELL SET BOLDNESS($cell; 0)
+	$cell:=XLS WORKSHEET Set cell text($sheet; 1; 0; 0; "Título del Informe")
+	$cell:=XLS WORKSHEET Set cell text($sheet; 2; 0; 0; "Fecha de impresión")
+	$cell:=XLS WORKSHEET Set cell text($sheet; 2; 1; 0; String(Current date(*)))
+	
+	//ENCABEZADOS
+	
+	$cell:=XLS WORKSHEET Set cell text($sheet; 4; 0; 0; "Columna")
+	XLS CELL SET BOLDNESS($cell; 0)
+	
+	//COMBINAR CELDAS
+	//parámetros:  hoja;filaDesde;columnaDesde;filaHasta;columnaHasta
+	//$cell:=XLS WORKSHEET Set cell text($sheet; 4; 1; 0; "Columnas Combinadas")
+	//XLS WORKSHEET MERGE CELLS($sheet; 4; 1; 7; 3) //ejemplo cuadrado de 3x3 celdas
+	
+	//CUERPO
+	ARRAY TEXT($arreglo; 0)
+	$linea:=5
+	$termometro:=IT_Progress(1; 0; 0; "")
+	For ($x; 1; Size of array($arreglo))
+		$termometro:=IT_Progress(0; $termometro; $x/Size of array($arreglo); "")
+		$cell:=XLS WORKSHEET Set cell text($sheet; $linea; 0; 0; "Texto")
+		$linea:=$linea+1
+	End for 
+	$termometro:=IT_Progress(-1; $termometro; $x/Size of array($arreglo); "")
+	$Guardar:=XLS WORKBOOK Save document($book; $NomArchivo)
+	XLS WORKBOOK CLEAR($book)
+	USE CHARACTER SET(*; 0)
+	vt_ErrorEjecucionScript:="Cancel"
+	CD_Dlog(0; "La exportación finalizó\n\n.Encontrará el archivo en: \n"+$ruta)
+	SHOW ON DISK($NomArchivo)
+Else 
+	vt_ErrorEjecucionScript:="Cancel"
+End if 
+</text>
+ </macro>
+
+>>>>>>> 4338312403955ac64d76c0d9ea8ec27d71c80706
   <!-- Useful SQL statements 
   <macro name="-" in_menu="true" type_ahead="false" in_toolbar="false"><text/></macro>
   
