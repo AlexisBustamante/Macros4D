@@ -826,7 +826,6 @@ hmBC_DELETE ($vl_ref)
 </text>
  </macro>
 
-<<<<<<< HEAD
  <macro name="Obs_x_Asignatura">
 	<text>
 		QUERY([Alumnos_Calificaciones]; [Alumnos_Calificaciones]ID_Alumno=[Alumnos]numero; *)
@@ -840,7 +839,6 @@ $ptr:=KRL_GetFieldPointerByName("[Alumnos_ComplementoEvaluacion]P0"+String(vperi
 
 	</text>
  </macro>
-=======
 <macro name="ExportadorXLSWorkBook">
 <text>
 C_TEXT($ruta)
