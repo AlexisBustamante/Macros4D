@@ -790,6 +790,19 @@ hmBC_DELETE ($vl_ref)
 </text>
  </macro>
 
+ <macro name="Obs_x_Asignatura">
+	<text>
+		QUERY([Alumnos_Calificaciones]; [Alumnos_Calificaciones]ID_Alumno=[Alumnos]numero; *)
+QUERY([Alumnos_Calificaciones];  &amp; ;  [Alumnos_Calificaciones]NombreOficialAsignatura="@AULA@")
+
+QUERY([Alumnos_ComplementoEvaluacion]; [Alumnos_ComplementoEvaluacion]Llave_Principal=[Alumnos_Calificaciones]Llave_principal)
+
+C_POINTER($ptr)
+
+$ptr:=KRL_GetFieldPointerByName("[Alumnos_ComplementoEvaluacion]P0"+String(vperiodo)+"_Obs_Academicas")
+
+	</text>
+ </macro>
   <!-- Useful SQL statements 
   <macro name="-" in_menu="true" type_ahead="false" in_toolbar="false"><text/></macro>
   
