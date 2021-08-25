@@ -193,6 +193,7 @@ End if
 <text>
 C_TEXT($ruta)
 $ruta:=xfGetDirName ("Seleccione carpeta de destino.")
+//$ruta:="C:\\Users\\Ignacio Arenas\\Desktop\\"
 If ($ruta#"")
 	C_TEXT($NomArchivo)
 	C_LONGINT($ref;$linea;$col;$Guardar;$termometro)
@@ -422,9 +423,32 @@ SET FIELD RELATION(<selection/>;Structure configuration;Structure configuration)
 <macro name="Termometro">
 <text>
 C_LONGINT($termometro)
-		$termometro:=IT_Progress (1;0;0;"")
-		$termometro:=IT_Progress (0;$termometro;vQR_long1/Size of array(aQR_text1);"")
-		$termometro:=IT_Progress (-1;$termometro;vQR_long1/Size of array(aQR_text1);"")
+//INDIVIDUAL
+$termometro:=IT_Progress(1; 0; 0; "")
+For ($x; 1; Size of array($arreglo1))
+	$termometro:=IT_Progress(0; $termometro; $x/Size of array($arreglo1); "")
+End for 
+$termometro:=IT_Progress(-1; $termometro; $x/Size of array($arreglo1); "")
+
+//DOBLE
+$termometro:=IT_Progress(1; 0; 0; "")
+For ($x; 1; Size of array($arreglo1))
+	For ($y; 1; Size of array($arreglo2))
+		$termometro:=IT_Progress(0; $termometro; $x/Size of array($arreglo1); ""; $y/Size of array($arreglo2); "")
+	End for 
+End for 
+$termometro:=IT_Progress(-1; $termometro; $x/Size of array($arreglo1); ""; $y/Size of array($arreglo2); "")
+
+//TRIPLE
+$termometro:=IT_Progress(1; 0; 0; "")
+For ($x; 1; Size of array($arreglo1))
+	For ($y; 1; Size of array($arreglo2))
+		For ($z; 1; Size of array($arreglo3))
+			$termometro:=IT_Progress(0; $termometro; $x/Size of array($arreglo1); ""; $y/Size of array($arreglo2); ""; $z/Size of array($arreglo3); "")
+		End for 
+	End for 
+End for 
+$termometro:=IT_Progress(-1; $termometro; $x/Size of array($arreglo1); ""; $y/Size of array($arreglo2); ""; $z/Size of array($arreglo3); "")
 </text>
  </macro>
 
@@ -892,6 +916,57 @@ If ($ruta#"")
 	SHOW ON DISK($NomArchivo)
 Else 
 	vt_ErrorEjecucionScript:="Cancel"
+End if 
+</text>
+ </macro>
+
+ <macro name="SeleccionaFechas">
+<text>
+SR_SeleccionaFecha
+_SeleccionaMes
+SRACT_SelFecha(2)
+SRACT_SelFecha(5)
+If (ok=1)
+	QUERY([ACT_Cargos]; [ACT_Cargos]FechaEmision&gt;=vinidate; *)
+	QUERY([ACT_Cargos];  &amp; ; [ACT_Cargos]FechaEmision&lt;=venddate)
+	QUERY([ACT_Cargos]; [ACT_Cargos]FechaEmision&gt;=vd_fecha1; *)
+	QUERY([ACT_Cargos];  &amp; ; [ACT_Cargos]FechaEmision&lt;=vd_fecha2)
+	QUERY([ACT_Cargos]; [ACT_Cargos]Año=vlSelAño)
+	QUERY([ACT_Cargos]; [ACT_Cargos]Mes=vi_selectedMonth)
+	
+	If (Records in selection([ACT_Cargos])&gt;0)
+		
+	Else 
+		vt_ErrorEjecucionScript:="X"
+		CD_Dlog(0; "No se encontraron registros en el período seleccionado.")
+	End if 
+Else 
+	vt_ErrorEjecucionScript:="X"
+End if 
+</text>
+ </macro>
+
+
+<macro name="ResponsableNivel">
+<text>
+//BUSCAR RESPONSABLE DE NIVEL
+ARRAY TEXT($cargos; 0)
+
+If (vlSelAño=Storage.Global.config.año)
+	QUERY([xxSTR_Niveles]; [xxSTR_Niveles]nivelNumero=[Alumnos]numero)
+Else 
+	QUERY([xxSTR_Niveles]; [xxSTR_Niveles]nivelNumero=[Alumnos_Historico]Alumno_Numero)
+End if 
+
+OB GET ARRAY([xxSTR_Niveles]OB_responsable; "cargo"; $cargos)
+$pos:=Find in array($cargos; "Coordinador@")
+
+If ($pos&gt;0)
+	ARRAY LONGINT($ids)
+	C_TEXT(vt_coordinador)
+	OB GET ARRAY([xxSTR_Niveles]OB_responsable; "id"; $ids)
+	QUERY([Profesores]; [Profesores]Numero=$ids{$pos})
+	vt_coordinador:=[Profesores]Nombres_apellidos
 End if 
 </text>
  </macro>
