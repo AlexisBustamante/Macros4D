@@ -970,6 +970,7 @@ If ($pos&gt;0)
 End if 
 </text>
  </macro>
+<<<<<<< HEAD
 
   <macro name="AsistenciaMensual">
 <text>
@@ -1118,6 +1119,19 @@ End if
  </macro>
 
 >>>>>>> 4338312403955ac64d76c0d9ea8ec27d71c80706
+=======
+<macro name="RotarTextoXLS">
+<text>
+	
+	XLS Set text value($ref; 1; $linea; 1; "TEXTO LARGOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+	XLS GET FORMAT PROPERTY($ref; 1; $linea; 1; $alignment; $rotation; $textProps; $borderlineTop; $borderlineTopColor; $borderlineLeft; $borderlineLeftColor; $borderlineRight; $borderlineRightColor; $borderlineBottom; $borderlineBottomColor; $pattern; $patternColor; $patternBackColor)
+	XLS SET FORMAT PROPERTY($ref; 1; $linea; 1; XLS H Align Justified; 90)
+	//se puede cambiar el parametro XLS H Align Justified por XLS V Align Bottom 
+	//ya que al rotar el texto también cambia la orientación.
+	// por lo tanto, la constante de alineación ya no es H (horizontal), sino V (vertical)
+</text>
+ </macro>
+>>>>>>> d5d4b29bdd703e01b56f47f1a6a8a00a6fca3811
   <!-- Useful SQL statements 
   <macro name="-" in_menu="true" type_ahead="false" in_toolbar="false"><text/></macro>
   
