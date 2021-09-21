@@ -1131,6 +1131,52 @@ End if
 	// por lo tanto, la constante de alineación ya no es H (horizontal), sino V (vertical)
 </text>
  </macro>
+
+<macro name="ScriptExcelTT">
+<text>
+//Variables. SIEMPRE agregar comentario al principio con las variables que usa el reporte. Así, cualquiera que vea el script sabrá qué variables requiere para funcionar.
+//vinidate, venddate, vlSelAño, choiceidx, etc. Variables que ya se usan en informes, y que están declaradas en el sistema.
+
+C_TEXT($t_ruta; $NomArchivo)
+C_OBJECT(o_generacionReporte)
+C_LONGINT($ref; $linea; $col; $Guardar; $termometro)
+C_COLLECTION($c_archivosANube; $c_archivosMail)
+$c_archivosANube:=New collection
+$c_archivosMail:=New collection
+o_generacionReporte:=New object
+$t_ruta:=SYS_CarpetaAplicacion(CLG_ArchivosAsociados)+"InformesTT"+Folder separator
+SYS_CreateFolderOnServer($t_ruta)
+
+$NomArchivo:=$t_ruta+"nombre_informe_"+DTS_MakeFromDateTime+".xls"
+SYS_CreateFolder(SYS_GetParentNme($NomArchivo))
+If (SYS_IsWindows)
+	USE CHARACTER SET("windows-1252"; 0)
+Else 
+	USE CHARACTER SET("MacRoman"; 0)
+End if 
+$ref:=XLS Create(1)
+$linea:=1
+
+XLS Set text value($ref; 1; $linea; 1; "Encabezado")
+
+$linea:=$linea+1
+For ($x; 1; Size of array($arreglo))
+	XLS Set text value($ref; 1; $linea; 1; "Columna")
+	$linea:=$linea+1
+End for 
+$Guardar:=XLS Save as($ref; $NomArchivo)
+XLS CLOSE($ref)
+USE CHARACTER SET(*; 0)
+vt_ErrorEjecucionScript:="X"
+
+$c_archivosANube.push($NomArchivo)
+$c_archivosMail.push($NomArchivo)
+o_generacionReporte.subirArchivosNube:=$c_archivosANube
+o_generacionReporte.enviarArchivosMail:=$c_archivosMail
+</text>
+ </macro>
+
+
 >>>>>>> d5d4b29bdd703e01b56f47f1a6a8a00a6fca3811
   <!-- Useful SQL statements 
   <macro name="-" in_menu="true" type_ahead="false" in_toolbar="false"><text/></macro>
