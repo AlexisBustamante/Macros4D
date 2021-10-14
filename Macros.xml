@@ -981,16 +981,38 @@ End if
 	// por lo tanto, la constante de alineación ya no es H (horizontal), sino V (vertical)
 </text>
  </macro>
-  <!-- Useful SQL statements 
-  <macro name="-" in_menu="true" type_ahead="false" in_toolbar="false"><text/></macro>
-  
-  <macro name="SQL_USE_4D_Function" type_ahead="true" in_menu = "true" in_toolbar="false">
-    <text>SELECT ID, {fn My4DFunction() AS NUMERIC} /* My4DFunction must have activated the 'Available through SQL' property */
-      FROM table
-      LIMIT 1 /* Remove or modify this line if you want to apply the function to all or a part of the records */
-      INTO :aArray1, :aArray2;
+ <macro name="PromediosXgrupoEstadictico">
+    <text>
+	ARRAY TEXT($at_valorDisplay; 0)
+C_OBJECT($o_parametros)
+
+$o_parametros:=New object
+
+$o_parametros.tablaBusqueda:=Table name(->[Alumnos])
+
+$o_parametros.campoBusqueda:=Field name(->[Alumnos]numero)
+
+$o_parametros.valorBusqueda:=[Alumnos]numero
+
+APPEND TO ARRAY($at_valorDisplay; Field name(->[Alumnos]apellidos_y_nombres))
+
+APPEND TO ARRAY($at_valorDisplay; Field name(->[Alumnos]curso))
+
+OB SET ARRAY($o_parametros; "valorDisplay"; $at_valorDisplay)
+
+$o_parametros.tablaGrupo:=Table name(->[Asignaturas])
+
+$o_parametros.campoGrupo:=Field name(->[Asignaturas]GrupoEstadistico)
+
+$o_parametros.idEstiloEvaluacion:=KRL_GetNumericFieldData(->[xxSTR_Niveles]nivelNumero; ->[Alumnos]nivel_numero; ->[xxSTR_Niveles]EvStyle_oficial)
+
+$o_parametros.periodos:=Size of array(aiSTR_Periodos_Numero)
+
+EV2_CalculaPromediosAgrupados($o_parametros)
     </text>
   </macro>
+  <!-- Useful SQL statements 
+  <macro name="-" in_menu="true" type_ahead="false" in_toolbar="false"><text/></macro>
   
   <macro name="SQL_USE_FILTERS" type_ahead="true" in_menu = "true" in_toolbar="false">
     <text>SELECT *
