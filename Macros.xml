@@ -1204,5 +1204,11 @@ o_generacionReporte.subirArchivosNube:=$c_archivosANube
 o_generacionReporte.enviarArchivosMail:=$c_archivosMail
 </text>
  </macro>
+ 
+ <macro name="GetTextFieldData">
+<text>
+vt_nombreMatriz:=KRL_GetTextFieldData(->[ACT_Matrices]ID; ->[ACT_CuentasCorrientes]ID_Matriz; ->[ACT_Matrices]Nombre_matriz)
+</text>
+ </macro>
 
 </macros> 
