@@ -970,7 +970,7 @@ If ($pos&gt;0)
 End if 
 </text>
  </macro>
-<<<<<<< HEAD
+
 
   <macro name="AsistenciaMensual">
 <text>
@@ -1160,7 +1160,9 @@ $o_parametros.periodos:=Size of array(aiSTR_Periodos_Numero)
 
 EV2_CalculaPromediosAgrupados($o_parametros)
 =======
+</text>
 
+ </macro>
 <macro name="ScriptExcelTT">
 <text>
 //Variables. SIEMPRE agregar comentario al principio con las variables que usa el reporte. Así, cualquiera que vea el script sabrá qué variables requiere para funcionar.
