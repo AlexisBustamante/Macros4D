@@ -813,42 +813,50 @@ vt_totalVcto2:=String($vr_totalTramo2; "|Despliegue_Act")
 vt_totalVcto3:=String($vr_totalTramo3; "|Despliegue_Act")
 </text>
  </macro>
+ 
  <macro name="Crea_QR">
 <text>
-C_PICTURE(vp_QR)
 
-C_OBJECT(zint_params;$status;$data)
+C_OBJECT(zint_params; $status; $data)
 C_PICTURE(vBarcode)
-C_TEXT(vt_ver;vt_cuit;vt_ptoVta;vt_tipoCmp;vt_nroCmp;vt_tipoDocRec;vt_nroDocRec;vt_codAut;vt_fecha;vt_importe;vt_ctz;vt_modena;vt_tipoCodAut)
+C_TEXT(vt_ver; vt_cuit; vt_ptoVta; vt_tipoCmp; vt_nroCmp; vt_tipoDocRec; vt_nroDocRec; vt_codAut; vt_fecha; vt_importe; vt_ctz; vt_modena; vt_tipoCodAut)
 
-vp_Logo:=_LogoInstitucion
-vt_data:=String([Alumnos]numero)+"/"+[Alumnos]apellidos_y_nombres+"/ "+SR_FormatoRUT2 ([Alumnos]RUT)+"/ "+[Alumnos]curso
+vt_ver:="1"
+vt_fecha:="2020-10-13"
+vt_cuit:="30000000007"
+vt_ptoVta:="10"
+vt_tipoCmp:="1"
+vt_nroCmp:="94"
+vt_importe:="12100"
+vt_modena:="DOL"
+vt_ctz:="65"
+vt_tipoDocRec:="80"
+vt_nroDocRec:="20000000001"
+vt_tipoCodAut:="E"
+vt_codAut:="70417054367476"
 
+C_TEXT(vt_data; vt_json; vt_url)
 
-  //codificación
-TEXT TO BLOB(vt_data;$x_textoIn;UTF8 text without length)
+vt_json:="{\"ver\":"+vt_ver+",\"fecha\":\""+vt_fecha+"\",\"cuit\":"+vt_cuit+",\"ptoVta\":"+vt_ptoVta+",\"tipoCmp\":"+vt_tipoCmp+",\"nroCmp\":"+vt_nroCmp+",\"importe\":"+vt_importe+",\"moneda\":\""+vt_modena+"\",\"ctz\":"+vt_ctz+",\"tipoDocRec\":"+vt_tipoDocRec+",\"nroDocRec\":"+vt_nroDocRec+",\"tipoCodAut\":\""+vt_tipoCodAut+"\",\"codAut\":"+vt_codAut+"}"
+vt_url:=""
+vt_url:="https://www.afip.gob.ar/fe/qr/"
+vt_data:=vt_json
+
+C_BLOB($x_textoIn)
+
+//codificación
+TEXT TO BLOB(vt_data; $x_textoIn; UTF8 text without length)
 C_TEXT(vt_base64)
-BASE64 ENCODE($x_textoIn;vt_base64)
+BASE64 ENCODE($x_textoIn; vt_base64)
+vt_url:=vt_url+"?p="+vt_base64+"="
+
+vQR_picture1:=HMBC_GeneraCodigo(vt_url; hmBC_QR Code)
 
 
-C_BLOB($vx_inblob)
-C_LONGINT($vl_ref;$vl_error)
-C_PICTURE($vb_picture;vQr_picture1)
 
-$vl_ref:=hmBC_New 
-hmBC_SET SYMBOLOGY ($vl_ref;hmBC_QR Code)
-
-SET BLOB SIZE($vx_inblob;0)
-CONVERT FROM TEXT(vt_data;"UTF-8";$vx_inblob)
-
-$vl_error:=hmBC_Encode ($vl_ref;$vx_inblob)
-If ($vl_error=0)
-	$vl_error:=hmBC_Render To Picture ($vl_ref;hmBC_Output_SVG;$vb_picture)
-End if 
-vQr_picture1:=$vb_picture
-hmBC_DELETE ($vl_ref)
 </text>
  </macro>
+
 
  <macro name="Obs_x_Asignatura">
 	<text>
